@@ -1,17 +1,16 @@
-package structsqlpostgres
+package pgsqlbuilder
 
-// ErrStructSQL wraps original error with operation/step where the error occurred and optionally with a tag when
-// parsing "crud" failed
-type ErrStructSQL struct {
+// ErrBuilder is error that is returned by the builder.
+type ErrBuilder struct {
 	Op  string
 	Tag string
 	Err error
 }
 
-func (e ErrStructSQL) Error() string {
+func (e ErrBuilder) Error() string {
 	return e.Err.Error()
 }
 
-func (e ErrStructSQL) Unwrap() error {
+func (e ErrBuilder) Unwrap() error {
 	return e.Err
 }
