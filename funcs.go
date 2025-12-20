@@ -1,53 +1,17 @@
-package structsqlpostgres
+package pgsqlbuilder
 
 import (
 	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode"
 )
 
-// GetStructName returns struct name of a struct instance
-func GetStructName(u interface{}) string {
-	v := reflect.ValueOf(u)
-	i := reflect.Indirect(v)
-	s := i.Type()
-	return s.Name()
-}
+var intRegex = regexp.MustCompile(`^-?\d+$`)
+var floatRegex = regexp.MustCompile(`^-?\d*\.\d+$`)
 
-// GetStructFieldNames returns list of names of fields of a struct instance, which are supported in generating SQL query.
-func GetStructFieldNames(u interface{}) []string {
-	v := reflect.ValueOf(u)
-	i := reflect.Indirect(v)
-	s := i.Type()
-
-	names := []string{}
-
-	for j := 0; j < s.NumField(); j++ {
-		f := s.Field(j)
-		k := f.Type.Kind()
-
-		if !IsFieldKindSupported(k) {
-			continue
-		}
-
-		names = append(names, f.Name)
-	}
-
-	return names
-}
-
-// GetStructNamesFromConstructors returns a list of struct names from a list of constructors (functions that return struct instances)
-func GetStructNamesFromConstructors(objFuncs ...func() interface{}) []string {
-	names := []string{}
-	for _, objFunc := range objFuncs {
-		o := objFunc()
-		v := reflect.ValueOf(o)
-		i := reflect.Indirect(v)
-		s := i.Type()
-		names = append(names, s.Name())
-	}
-	return names
-}
-
-// IsFieldKindSupported checks if a field kind is supported by this module
+// IsFieldKindSupported checks if a specific reflect kind of the field is supported by the Builder.
 func IsFieldKindSupported(k reflect.Kind) bool {
 	switch k {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -63,7 +27,7 @@ func IsFieldKindSupported(k reflect.Kind) bool {
 	}
 }
 
-// IsStructField checks if a specific string is a name of a field
+// IsStructField checks if a field exists in a struct.
 func IsStructField(u interface{}, field string) bool {
 	v := reflect.ValueOf(u)
 	i := reflect.Indirect(v)
@@ -83,4 +47,92 @@ func IsStructField(u interface{}, field string) bool {
 	}
 
 	return false
+}
+
+// StructFieldValueFromString takes a field value as string and converts it (if possible) to a value type of that field.
+func StructFieldValueFromString(obj interface{}, name string, value string) (bool, interface{}) {
+	objValue := reflect.ValueOf(obj)
+	objIndirect := reflect.Indirect(objValue)
+	objType := objIndirect.Type()
+
+	for j := 0; j < objType.NumField(); j++ {
+		field := objType.Field(j)
+		kind := field.Type.Kind()
+
+		if !IsFieldKindSupported(kind) {
+			continue
+		}
+
+		if field.Name == name {
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if intRegex.MatchString(value) {
+					v, err := strconv.ParseInt(value, 10, 64)
+					if err == nil {
+						return true, v
+					}
+				}
+			case reflect.Float32, reflect.Float64:
+				if floatRegex.MatchString(value) || intRegex.MatchString(value) {
+					v, err := strconv.ParseFloat(value, 64)
+					if err == nil {
+						return true, v
+					}
+				}
+			case reflect.Bool:
+				if strings.ToLower(value) == "true" || strings.ToLower(value) == "false" {
+					v, err := strconv.ParseBool(value)
+					if err == nil {
+						return true, v
+					}
+				}
+			case reflect.String:
+				return true, value
+			}
+			return false, nil
+		}
+	}
+
+	return false, nil
+}
+
+// CamelCaseToSnakeCase converts CamelCase string to snake_case one.
+func CamelCaseToSnakeCase(s string) string {
+	o := ""
+
+	for i, ch := range s {
+		if i == 0 {
+			o += strings.ToLower(string(ch))
+			continue
+		}
+
+		if unicode.IsUpper(ch) {
+			o += "_" + strings.ToLower(string(ch))
+			continue
+		}
+
+		o += string(ch)
+	}
+
+	return o
+}
+
+// SnakeCaseToCamelCase converts snake_case string to CamelCase.
+func SnakeCaseToCamelCase(s string) string {
+	parts := strings.Split(s, "_")
+	result := ""
+
+	for _, part := range parts {
+		result += strings.ToUpper(part[:1]) + part[1:]
+	}
+
+	return result
+}
+
+// PrettifyCreateTable prettifies SQL query to make it more human-readable.
+func PrettifyCreateTable(sql string) string {
+	sql = strings.Replace(sql, "(", "(\n  ", 1)
+	sql = strings.ReplaceAll(sql, ",", ",\n  ")
+
+	return sql
 }

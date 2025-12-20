@@ -1,3 +1,3 @@
-module github.com/go-phings/struct-sql-postgres
+module github.com/keenbytes/pgsql-builder
 
-go 1.23.4
+go 1.24.5
