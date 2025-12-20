@@ -2,6 +2,8 @@
 
 This package generates Postgre SQL queries based on a struct instance. The concept is to define a struct, create a corresponding table to store its instances, and generate queries for managing the rows in that table, such as creating, updating, deleting, and selecting records.
 
+> ⚠️ The project might be good for small prototyping and showcase of reflection package. It is not recommended to use it in production. Please use a more mature library instead.
+
 The following queries can be generated:
 
 * `CREATE TABLE`
