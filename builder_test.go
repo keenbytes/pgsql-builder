@@ -216,7 +216,7 @@ func TestSQLDeleteWithFiltersQueries(t *testing.T) {
 		t.Fatalf("\nwant %v\ngot  %v", want, got)
 	}
 
-	got, _ = h.DeleteReturningID(
+	got, _ = h.DeleteReturningId(
 		&Filters{
 			Raw: {
 				Val: []interface{}{

@@ -11,8 +11,8 @@ type Builder struct {
 	tagName string
 	flags   int64
 
-	queryDropTable              string
 	queryCreateTable            string
+	queryDropTable              string
 	queryInsert                 string
 	queryUpdateById             string
 	queryInsertOnConflictUpdate string
@@ -190,9 +190,9 @@ func (b *Builder) Delete(filters *Filters) (string, error) {
 	return query + ";", nil
 }
 
-// DeleteReturningID returns a DELETE query with WHERE condition built from 'filters' (field-value pairs) with RETURNING id.
+// DeleteReturningId returns a DELETE query with WHERE condition built from 'filters' (field-value pairs) with RETURNING id.
 // Struct fields in 'filters' argument are sorted alphabetically. Hence, when used with database connection, their values (or pointers to it) must be sorted as well.
-func (b *Builder) DeleteReturningID(filters *Filters) (string, error) {
+func (b *Builder) DeleteReturningId(filters *Filters) (string, error) {
 	query := b.queryDeletePrefix
 
 	qWhere, err := b.queryFilters(filters, 1)

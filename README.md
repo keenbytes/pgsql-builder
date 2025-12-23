@@ -14,7 +14,9 @@ The following queries can be generated:
 * `SELECT ... WHERE id = ...`
 * `DELETE ... WHERE id = ...`
 * `SELECT ... WHERE ...`
+* `SELECT COUNT(*) WHERE ...`
 * `DELETE ... WHERE ...`
+* `DELETE ... WHERE ... RETURNING id`
 * `UPDATE ... WHERE ...`
 
 
@@ -85,20 +87,20 @@ There are certain options that can be provided to the `New` function which chang
 
 Use any of the following functions to get a desired SQL query. 
 
-| Function                   |
-|----------------------------|
-| `DropTable()`              |
-| `CreateTable()`            |
-| `Insert()`                 |
-| `UpdateById()`             |
-| `InsertOnConflictUpdate()` |
-| `SelectById()`             |
-| `DeleteById()`             |
-| `Select(order []string, limit int, offset int, filters *Filters)`                 |
-| `SelectCount(filters *Filters)`                 |
-| `Delete(filters *Filters)`                 |
-| `DeleteReturningID(filters *Filters)` |
-| `Update(values map[string]interface{}, filters *Filters)`                 |
+| Function                                                          |
+|-------------------------------------------------------------------|
+| `DropTable()`                                                     |
+| `CreateTable()`                                                   |
+| `Insert()`                                                        |
+| `UpdateById()`                                                    |
+| `InsertOnConflictUpdate()`                                        |
+| `SelectById()`                                                    |
+| `DeleteById()`                                                    |
+| `Select(order []string, limit int, offset int, filters *Filters)` |
+| `SelectCount(filters *Filters)`                                   |
+| `Delete(filters *Filters)`                                        |
+| `DeleteReturningId(filters *Filters)`                             |
+| `Update(values map[string]interface{}, filters *Filters)`         |
 
 ### Get SQL queries with conditions
 
@@ -132,8 +134,24 @@ sql := b.Select(
 
 #### SELECT COUNT(*)
 
-````
-// Use SelectCount without th first 3 arguments to get SELECT COUNT(*)
+````go
+// SELECT COUNT(*) AS cnt FROM products WHERE (created_by_user_id=$1 AND name=$2) OR (product_year > $3
+// AND product_year > $4 AND last_modified_by_user_id IN ($5,$6,$7,$8))
+sql := b.SelectCount(
+  &b.Filters{
+    "CreatedByUserID": {Op: OpEqual, Val: 4},
+    "Name":            {Op: OpEqual, Val: "Magic Sock"},
+    Raw: {
+      Op: OpOR,
+      Val: []interface{}{
+        ".ProductYear > ? AND .ProductYear < ? AND .LastModifiedByUserID(?)",
+        // The below values are not important, but the overall number of args must match question marks.
+        0,
+        0,
+        []int{0,0,0,0}, // this list must contain the same number of items as values
+      },
+    },
+  })
 ````
 
 #### DELETE
