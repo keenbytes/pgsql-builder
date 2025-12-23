@@ -5,7 +5,7 @@ import (
 )
 
 type TestStruct struct {
-	Id             int64  `json:"id"`
+	ID             int64  `json:"id"`
 	Flags          int64  `json:"flags"`
 	PrimaryEmail   string `json:"email"`
 	EmailSecondary string `json:"email2"`
@@ -55,10 +55,10 @@ func TestSQLInsertQueries(t *testing.T) {
 	}
 }
 
-func TestSQLUpdateByIdQueries(t *testing.T) {
+func TestSQLUpdateByIDQueries(t *testing.T) {
 	h := New(testStructObj, Options{})
 
-	got := h.UpdateById()
+	got := h.UpdateByID()
 	want := `UPDATE "test_struct" SET "flags"=$1,"primary_email"=$2,"email_secondary"=$3,"first_name"=$4,"last_name"=$5,` +
 		`"age"=$6,"price"=$7,"post_code"=$8,"post_code2"=$9,"password"=$10,"created_by"=$11,"key"=$12 WHERE "id" = $13;`
 	if got != want {
@@ -85,7 +85,7 @@ func TestSQLInsertOnConflictUpdateQueries(t *testing.T) {
 func TestSQLDeleteQueries(t *testing.T) {
 	h := New(testStructObj, Options{})
 
-	got := h.DeleteById()
+	got := h.DeleteByID()
 	want := `DELETE FROM "test_struct" WHERE "id" = $1;`
 	if got != want {
 		t.Fatalf("\nwant %v\ngot %v", want, got)
@@ -98,7 +98,7 @@ func TestSQLSelectQueries(t *testing.T) {
 	selectPrefix := `SELECT "id","flags","primary_email","email_secondary","first_name","last_name",` +
 		`"age","price","post_code","post_code2","password","created_by","key" FROM "test_struct"`
 
-	got := h.SelectById()
+	got := h.SelectByID()
 	want := selectPrefix + ` WHERE "id" = $1;`
 	if got != want {
 		t.Fatalf("\nwant %v\ngot  %v", want, got)
@@ -216,7 +216,7 @@ func TestSQLDeleteWithFiltersQueries(t *testing.T) {
 		t.Fatalf("\nwant %v\ngot  %v", want, got)
 	}
 
-	got, _ = h.DeleteReturningId(
+	got, _ = h.DeleteReturningID(
 		&Filters{
 			Raw: {
 				Val: []interface{}{

@@ -96,33 +96,50 @@ func StructFieldValueFromString(obj interface{}, name string, value string) (boo
 	return false, nil
 }
 
-// CamelCaseToSnakeCase converts CamelCase string to snake_case one.
-func CamelCaseToSnakeCase(s string) string {
+// FieldToColumn converts struct field name to database column name.
+func FieldToColumn(s string) string {
+	if s == "ID" {
+		return "id"
+	}
+
 	o := ""
 
+	var prev rune
 	for i, ch := range s {
 		if i == 0 {
 			o += strings.ToLower(string(ch))
+			prev = ch
 			continue
 		}
 
 		if unicode.IsUpper(ch) {
+			if prev == 'I' && ch == 'D' {
+				o += strings.ToLower(string(ch))
+				continue
+			}
+
 			o += "_" + strings.ToLower(string(ch))
+			prev = ch
 			continue
 		}
 
 		o += string(ch)
+		prev = ch
 	}
 
 	return o
 }
 
-// SnakeCaseToCamelCase converts snake_case string to CamelCase.
-func SnakeCaseToCamelCase(s string) string {
+// ColumnToField converts database column name to struct field name.
+func ColumnToField(s string) string {
 	parts := strings.Split(s, "_")
 	result := ""
 
 	for _, part := range parts {
+		if part == "id" {
+			result += "ID"
+			continue
+		}
 		result += strings.ToUpper(part[:1]) + part[1:]
 	}
 

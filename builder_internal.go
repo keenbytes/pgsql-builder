@@ -72,12 +72,12 @@ func (b *Builder) reflectBuildQueries(obj interface{}, tableNamePrefix string) {
 		objTypeName = strings.Split(objTypeName, "_")[0]
 	}
 
-	b.tableName = fmt.Sprintf(`"%s"`, tableNamePrefix+CamelCaseToSnakeCase(objTypeName))
+	b.tableName = fmt.Sprintf(`"%s"`, tableNamePrefix+FieldToColumn(objTypeName))
 
 	var (
 		columnNames                string
-		columnNamesWithoutId       string
-		valuesWithoutId            string
+		columnNamesWithoutID       string
+		valuesWithoutID            string
 		values                     string
 		columnNamesWithValues      string
 		columnNamesWithValuesAgain string
@@ -99,7 +99,7 @@ func (b *Builder) reflectBuildQueries(obj interface{}, tableNamePrefix string) {
 			b.fieldFlags[field.Name] += FieldFlagNotString
 		}
 
-		columnName := CamelCaseToSnakeCase(field.Name)
+		columnName := FieldToColumn(field.Name)
 		b.fieldColumnName[field.Name] = columnName
 		b.columnFieldName[columnName] = field.Name
 
@@ -126,36 +126,36 @@ func (b *Builder) reflectBuildQueries(obj interface{}, tableNamePrefix string) {
 	// Assuming that struct has at least 2 fields -> TODO: add check
 	numColumn = len(b.columnNames)
 
-	columnNamesWithoutId = strings.Join(b.columnNames[1:], ",")
+	columnNamesWithoutID = strings.Join(b.columnNames[1:], ",")
 	columnNames = strings.Join(b.columnNames, ",")
-	valuesWithoutId = "?" + strings.Repeat(",?", numColumn-2)
+	valuesWithoutID = "?" + strings.Repeat(",?", numColumn-2)
 
 	columnNamesWithValues = strings.Join(b.columnNames[1:], "=?,") + "=?"
 	columnNamesWithValuesAgain = columnNamesWithValues
 	for i := 1; i <= numColumn*2; i++ {
 		columnNamesWithValues = strings.Replace(columnNamesWithValues, "?", fmt.Sprintf("$%d", i), 1)
-		valuesWithoutId = strings.Replace(valuesWithoutId, "?", fmt.Sprintf("$%d", i), 1)
+		valuesWithoutID = strings.Replace(valuesWithoutID, "?", fmt.Sprintf("$%d", i), 1)
 		if i > numColumn {
 			columnNamesWithValuesAgain = strings.Replace(columnNamesWithValuesAgain, "?", fmt.Sprintf("$%d", i), 1)
 		}
 	}
-	values = valuesWithoutId + fmt.Sprintf(",$%d", numColumn)
+	values = valuesWithoutID + fmt.Sprintf(",$%d", numColumn)
 
 	idColumn := `"id"`
 
 	b.queryDropTable = fmt.Sprintf("DROP TABLE IF EXISTS %s", b.tableName)
 	b.queryCreateTable = fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", b.tableName, strings.Join(b.columnDefinitions, ","))
 
-	b.queryDeleteById = fmt.Sprintf("DELETE FROM %s WHERE %s = $1", b.tableName, idColumn)
+	b.queryDeleteByID = fmt.Sprintf("DELETE FROM %s WHERE %s = $1", b.tableName, idColumn)
 	b.queryDeletePrefix = fmt.Sprintf("DELETE FROM %s", b.tableName)
 
-	b.queryUpdateById = fmt.Sprintf("UPDATE %s SET %s WHERE %s = $%d", b.tableName, columnNamesWithValues, idColumn, numColumn)
+	b.queryUpdateByID = fmt.Sprintf("UPDATE %s SET %s WHERE %s = $%d", b.tableName, columnNamesWithValues, idColumn, numColumn)
 	b.queryUpdatePrefix = fmt.Sprintf("UPDATE %s SET", b.tableName)
 
-	b.queryInsert = fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s) RETURNING %s", b.tableName, columnNamesWithoutId, valuesWithoutId, idColumn)
+	b.queryInsert = fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s) RETURNING %s", b.tableName, columnNamesWithoutID, valuesWithoutID, idColumn)
 	b.queryInsertOnConflictUpdate = fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s) ON CONFLICT (%s) DO UPDATE SET %s RETURNING %s", b.tableName, columnNames, values, idColumn, columnNamesWithValuesAgain, idColumn)
 
-	b.querySelectById = fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", columnNames, b.tableName, idColumn)
+	b.querySelectByID = fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", columnNames, b.tableName, idColumn)
 	b.querySelectPrefix = fmt.Sprintf("SELECT %s FROM %s", columnNames, b.tableName)
 
 	b.querySelectCountPrefix = fmt.Sprintf("SELECT COUNT(*) AS cnt FROM %s", b.tableName)
@@ -198,13 +198,9 @@ func (b *Builder) setFieldFromTagOptWithoutVal(opt string, fieldName string) {
 
 // Mapping database column type to struct field type
 func (b *Builder) columnDefinitionFromField(fieldName string, fieldType string, isUnique bool) string {
-	// 'Id' and 'Flags' are special fields
-	if fieldName == "Id" {
+	// 'ID' is a special field
+	if fieldName == "ID" {
 		return "SERIAL PRIMARY KEY"
-	}
-
-	if fieldName == "Flags" {
-		return "BIGINT NOT NULL DEFAULT 0"
 	}
 
 	fieldColumnType, ok := b.fieldColumnType[fieldName]

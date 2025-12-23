@@ -14,10 +14,10 @@ type Builder struct {
 	queryCreateTable            string
 	queryDropTable              string
 	queryInsert                 string
-	queryUpdateById             string
+	queryUpdateByID             string
 	queryInsertOnConflictUpdate string
-	querySelectById             string
-	queryDeleteById             string
+	querySelectByID             string
+	queryDeleteByID             string
 	querySelectPrefix           string
 	querySelectCountPrefix      string
 	queryDeletePrefix           string
@@ -94,9 +94,9 @@ func (b *Builder) Insert() string {
 	return b.queryInsert + ";"
 }
 
-// UpdateById returns an SQL query for updating an object by their ID.
-func (b *Builder) UpdateById() string {
-	return b.queryUpdateById + ";"
+// UpdateByID returns an SQL query for updating an object by their ID.
+func (b *Builder) UpdateByID() string {
+	return b.queryUpdateByID + ";"
 }
 
 // InsertOnConflictUpdate returns an SQL query for inserting when conflict is detected.
@@ -104,14 +104,14 @@ func (b *Builder) InsertOnConflictUpdate() string {
 	return b.queryInsertOnConflictUpdate + ";"
 }
 
-// SelectById returns an SQL query for selecting object by its ID.
-func (b *Builder) SelectById() string {
-	return b.querySelectById + ";"
+// SelectByID returns an SQL query for selecting object by its ID.
+func (b *Builder) SelectByID() string {
+	return b.querySelectByID + ";"
 }
 
-// DeleteById returns an SQL query for deleting object by its ID.
-func (b *Builder) DeleteById() string {
-	return b.queryDeleteById + ";"
+// DeleteByID returns an SQL query for deleting object by its ID.
+func (b *Builder) DeleteByID() string {
+	return b.queryDeleteByID + ";"
 }
 
 // Select returns a SELECT query with WHERE condition built from 'filters' (field-value pairs).
@@ -190,9 +190,9 @@ func (b *Builder) Delete(filters *Filters) (string, error) {
 	return query + ";", nil
 }
 
-// DeleteReturningId returns a DELETE query with WHERE condition built from 'filters' (field-value pairs) with RETURNING id.
+// DeleteReturningID returns a DELETE query with WHERE condition built from 'filters' (field-value pairs) with RETURNING id.
 // Struct fields in 'filters' argument are sorted alphabetically. Hence, when used with database connection, their values (or pointers to it) must be sorted as well.
-func (b *Builder) DeleteReturningId(filters *Filters) (string, error) {
+func (b *Builder) DeleteReturningID(filters *Filters) (string, error) {
 	query := b.queryDeletePrefix
 
 	qWhere, err := b.queryFilters(filters, 1)
@@ -206,7 +206,7 @@ func (b *Builder) DeleteReturningId(filters *Filters) (string, error) {
 	if qWhere != "" {
 		query += " WHERE " + qWhere
 	}
-	query += fmt.Sprintf(` RETURNING "%s";`, b.fieldColumnName["Id"])
+	query += fmt.Sprintf(` RETURNING "%s";`, b.fieldColumnName["ID"])
 
 	return query, nil
 }
