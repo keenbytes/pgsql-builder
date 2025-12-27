@@ -57,7 +57,7 @@ func StructFieldValueFromString(obj interface{}, name string, value string) (boo
 	objType := objIndirect.Type()
 
 	if objType.String() == "reflect.Value" {
-		objType = reflect.ValueOf(obj.(reflect.Value).Interface()).Type().Elem().Elem()
+		objType = reflect.ValueOf(obj.(reflect.Value).Interface()).Type().Elem()
 	}
 
 	for j := 0; j < objType.NumField(); j++ {
