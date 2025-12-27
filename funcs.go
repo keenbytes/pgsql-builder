@@ -155,7 +155,7 @@ func PrettifyCreateTable(sql string) string {
 	return sql
 }
 
-func MapInterface(mapObj map[string]interface{}) []interface{} {
+func MapInterfaces(mapObj map[string]interface{}) []interface{} {
 	var interfaces []interface{}
 
 	numObjs := len(mapObj)
