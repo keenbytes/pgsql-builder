@@ -169,19 +169,22 @@ func SetObjFields(obj interface{}, values *Filters) error {
 		return nil
 	}
 
+	// objValue must be a struct or point to a struct
 	objValue := reflect.ValueOf(obj)
+	if objValue.Kind() == reflect.Ptr {
+		if objValue.IsNil() {
+			return fmt.Errorf("obj cannot be a nil pointer")
+		}
 
-	if objValue.Kind() != reflect.Ptr || objValue.IsNil() {
-		return fmt.Errorf("obj must be a non‑nil pointer to a struct")
+		objValue = objValue.Elem()
 	}
 
-	structVal := objValue.Elem()
-	if structVal.Kind() != reflect.Struct {
-		return fmt.Errorf("obj must point to a struct, got %s", structVal.Kind())
+	if objValue.Kind() != reflect.Struct {
+		return fmt.Errorf("obj must be or point to a struct, got %s", objValue.Kind())
 	}
 
 	var firstErr error
-	typ := structVal.Type()
+	typ := objValue.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 
@@ -198,7 +201,7 @@ func SetObjFields(obj interface{}, values *Filters) error {
 			continue
 		}
 
-		dest := structVal.Field(i)
+		dest := objValue.Field(i)
 
 		// TODO: We do not support pointers at this stage
 		if dest.Kind() == reflect.Ptr {
