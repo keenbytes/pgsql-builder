@@ -92,14 +92,14 @@ Use any of the following functions to get a desired SQL query.
 | `DropTable()`                                                     |
 | `CreateTable()`                                                   |
 | `Insert()`                                                        |
-| `UpdateById()`                                                    |
+| `UpdateByID()`                                                    |
 | `InsertOnConflictUpdate()`                                        |
-| `SelectById()`                                                    |
-| `DeleteById()`                                                    |
+| `SelectByID()`                                                    |
+| `DeleteByID()`                                                    |
 | `Select(order []string, limit int, offset int, filters *Filters)` |
 | `SelectCount(filters *Filters)`                                   |
 | `Delete(filters *Filters)`                                        |
-| `DeleteReturningId(filters *Filters)`                             |
+| `DeleteReturningID(filters *Filters)`                             |
 | `Update(values map[string]interface{}, filters *Filters)`         |
 
 ### Get SQL queries with conditions
