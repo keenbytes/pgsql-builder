@@ -3,6 +3,7 @@ package pgsqlbuilder
 import (
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -152,4 +153,21 @@ func PrettifyCreateTable(sql string) string {
 	sql = strings.ReplaceAll(sql, ",", ",\n  ")
 
 	return sql
+}
+
+func MapInterface(mapObj map[string]interface{}) []interface{} {
+	var interfaces []interface{}
+
+	numObjs := len(mapObj)
+	sorted := make([]string, 0, numObjs)
+	for field := range mapObj {
+		sorted = append(sorted, field)
+	}
+	sort.Strings(sorted)
+
+	for _, val := range sorted {
+		interfaces = append(interfaces, mapObj[val])
+	}
+
+	return interfaces
 }

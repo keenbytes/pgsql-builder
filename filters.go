@@ -17,7 +17,7 @@ const (
 )
 
 // Interfaces returns list of interfaces from filters map (used in querying)
-func Interfaces(filters *Filters) []interface{} {
+func FiltersInterfaces(filters *Filters) []interface{} {
 	var interfaces []interface{}
 
 	if filters == nil || len(*filters) == 0 {
