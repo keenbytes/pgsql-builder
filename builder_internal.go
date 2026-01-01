@@ -1,7 +1,6 @@
 package pgsqlbuilder
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -41,7 +40,7 @@ func (b *Builder) reflectFieldTags(obj interface{}) {
 			continue
 		}
 
-		// Get value of field's 2sql and 2sql_val tags ('2sql' or different when TagName provided in options).
+		// Get value of field's sql and sql_val tags ('2sql' or different when TagName provided in options).
 		tagValue := field.Tag.Get(b.tagName)
 		valTagValue := field.Tag.Get(b.tagName + "_val")
 
@@ -268,10 +267,7 @@ func (b *Builder) queryOrder(order []string) (string, error) {
 
 		fieldColumn, ok := b.fieldColumnName[field]
 		if !ok {
-			return "", &ErrBuilder{
-				Op:  "queryOrder",
-				Err: errors.New("invalid order field/column"),
-			}
+			return "", getColumnNameBuilderError("order")
 		}
 
 		queryDirection := "ASC"
@@ -310,10 +306,7 @@ func (b *Builder) querySet(values map[string]interface{}) (string, int, error) {
 	for value := range values {
 		fieldColumn, ok := b.fieldColumnName[value]
 		if !ok {
-			return "", 0, &ErrBuilder{
-				Op:  "querySet",
-				Err: errors.New("invalid field/column to set"),
-			}
+			return "", 0, getColumnNameBuilderError("value")
 		}
 
 		columns = append(columns, fieldColumn)
@@ -356,10 +349,7 @@ func (b *Builder) queryFilters(filters *Filters, firstValueNum int) (string, err
 
 		fieldColumn, ok := b.fieldColumnName[name]
 		if !ok {
-			return "", &ErrBuilder{
-				Op:  "queryFilters",
-				Err: errors.New("invalid field/column to filter"),
-			}
+			return "", getColumnNameBuilderError("filter")
 		}
 
 		if b.fieldFlags[name]&FieldFlagNotString > 0 && ((*filters)[name].Op == OpLike || (*filters)[name].Op == OpMatch) {
@@ -431,10 +421,7 @@ func (b *Builder) queryFilters(filters *Filters, firstValueNum int) (string, err
 
 		fieldColumn, ok := b.fieldColumnName[fieldName]
 		if !ok {
-			return "", &ErrBuilder{
-				Op:  "queryFilters",
-				Err: errors.New("invalid field/column to filter in _raw"),
-			}
+			return "", getColumnNameBuilderError("raw query")
 		}
 
 		rawQuery = strings.ReplaceAll(rawQuery, fieldInRaw, fmt.Sprintf(`"%s"`, fieldColumn))

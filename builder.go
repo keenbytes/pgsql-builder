@@ -2,7 +2,6 @@ package pgsqlbuilder
 
 import (
 	"fmt"
-	"regexp"
 )
 
 // Builder reflects the object to generate and cache PostgreSQL queries (CREATE TABLE, INSERT, UPDATE etc.).
@@ -35,26 +34,6 @@ type Builder struct {
 
 	reflectError error
 }
-
-const (
-	_ = 1 << iota
-	FlagHasModificationFields
-)
-
-const (
-	_ = 1 << iota
-	FieldFlagUnique
-	FieldFlagNotString
-	FieldFlagPassword
-)
-
-const (
-	DefaultTagName = "sql"
-)
-
-var (
-	regexpFieldInRaw = regexp.MustCompile(`\.[a-zA-Z0-9_]+`)
-)
 
 // New takes a struct and returns a Builder instance.
 func New(obj interface{}, options Options) *Builder {
@@ -122,19 +101,13 @@ func (b *Builder) Select(order []string, limit int, offset int, filters *Filters
 
 	qOrder, err := b.queryOrder(order)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Select",
-			Err: err,
-		}
+		return "", getClauseBuilderError("order", "order array", err)
 	}
 
 	qLimitOffset := b.queryLimitOffset(limit, offset)
 	qWhere, err := b.queryFilters(filters, 1)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Select",
-			Err: err,
-		}
+		return "", getClauseBuilderError("where", "filters", err)
 	}
 
 	if qWhere != "" {
@@ -157,10 +130,7 @@ func (b *Builder) SelectCount(filters *Filters) (string, error) {
 
 	qWhere, err := b.queryFilters(filters, 1)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "SelectCount",
-			Err: err,
-		}
+		return "", getClauseBuilderError("where", "filters", err)
 	}
 
 	if qWhere != "" {
@@ -177,10 +147,7 @@ func (b *Builder) Delete(filters *Filters) (string, error) {
 
 	qWhere, err := b.queryFilters(filters, 1)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Delete",
-			Err: err,
-		}
+		return "", getClauseBuilderError("where", "filters", err)
 	}
 
 	if qWhere != "" {
@@ -197,10 +164,7 @@ func (b *Builder) DeleteReturningID(filters *Filters) (string, error) {
 
 	qWhere, err := b.queryFilters(filters, 1)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Delete",
-			Err: err,
-		}
+		return "", getClauseBuilderError("where", "filters", err)
 	}
 
 	if qWhere != "" {
@@ -218,20 +182,14 @@ func (b *Builder) Update(values map[string]interface{}, filters *Filters) (strin
 
 	qSet, lastVarNumber, err := b.querySet(values)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Update",
-			Err: err,
-		}
+		return "", getClauseBuilderError("set", "values map", err)
 	}
 
 	query += " " + qSet
 
 	qWhere, err := b.queryFilters(filters, lastVarNumber+1)
 	if err != nil {
-		return "", &ErrBuilder{
-			Op:  "Update",
-			Err: err,
-		}
+		return "", getClauseBuilderError("where", "filters", err)
 	}
 
 	if qWhere != "" {
